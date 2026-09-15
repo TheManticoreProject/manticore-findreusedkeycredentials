@@ -151,7 +151,12 @@ func main() {
 				kc := keycredentiallink.KeyCredentialLink{}
 				kc.ParseDNWithBinary(dnWithBinary)
 
-				keyFingerprint := kc.KeyMaterial.(*keys.BCRYPT_RSA_PUBLIC_KEY).Fingerprint()
+				if kc.KeyMaterial == nil {
+					logger.Warn(fmt.Sprintf("Entry %s has a KeyCredentialLink with no key material, skipping", entry.GetAttributeValue("distinguishedName")))
+					continue
+				}
+
+				keyFingerprint := kc.KeyMaterial.Fingerprint()
 
 				if len(foundKeys[keyFingerprint]) == 1 {
 					keysToExport[keyFingerprint] = kc.KeyMaterial
@@ -166,13 +171,18 @@ func main() {
 				keyId++
 				if exportKeys {
 					keyExportPath := fmt.Sprintf("%s%04d.pem", exportFolder, keyId)
-					pemData, err := keysToExport[keyFingerprint].(*keys.BCRYPT_RSA_PUBLIC_KEY).ExportPEM()
-					if err != nil {
-						logger.Warn(fmt.Sprintf("Error exporting key to PEM: %s", err))
+					rsaPubKey, ok := keysToExport[keyFingerprint].(*keys.BCRYPT_RSA_PUBLIC_KEY)
+					if !ok {
+						logger.Warn(fmt.Sprintf("Key %s is not an RSA public key, skipping PEM export", keyFingerprint))
 					} else {
-						err = os.WriteFile(keyExportPath, pemData, 0644)
+						pemData, err := rsaPubKey.ExportPEM()
 						if err != nil {
-							logger.Warn(fmt.Sprintf("Error writing key to file: %s", err))
+							logger.Warn(fmt.Sprintf("Error exporting key to PEM: %s", err))
+						} else {
+							err = os.WriteFile(keyExportPath, pemData, 0644)
+							if err != nil {
+								logger.Warn(fmt.Sprintf("Error writing key to file: %s", err))
+							}
 						}
 					}
 					logger.Info(fmt.Sprintf("These %d objects share the same key (%s):", len(dNs), keyExportPath))

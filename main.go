@@ -115,6 +115,8 @@ func main() {
 		logger.Warn(fmt.Sprintf("Error connecting to LDAP: %s", err))
 		return
 	}
+	defer ldapSession.Close()
+
 	if connected {
 		logger.Info(fmt.Sprintf("Connected as '%s\\%s'", authDomain, authUsername))
 

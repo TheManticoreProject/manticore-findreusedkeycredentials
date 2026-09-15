@@ -176,6 +176,10 @@ func main() {
 			if len(dNs) > 1 {
 				keyId++
 				if exportKeys {
+					err := os.MkdirAll(exportFolder, 0755)
+					if err != nil {
+						logger.Warn(fmt.Sprintf("Error creating export directory: %s", err))
+					}
 					keyExportPath := fmt.Sprintf("%s%04d.pem", exportFolder, keyId)
 					rsaPubKey, ok := keysToExport[keyFingerprint].(*keys.BCRYPT_RSA_PUBLIC_KEY)
 					if !ok {

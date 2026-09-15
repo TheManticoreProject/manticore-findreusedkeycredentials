@@ -37,7 +37,11 @@ var (
 )
 
 func parseArgs() {
-	ap := parser.ArgumentsParser{Banner: "FindReusedKeyCredentials - by Remi GASCOU (Podalirius) @ TheManticoreProject - v1.0.0"}
+	ap := parser.ArgumentsParser{
+		Banner: "FindReusedKeyCredentials - by Remi GASCOU (Podalirius) @ TheManticoreProject - v1.0.0",
+	}
+	ap.SetOptShowBannerOnHelp(true)
+	ap.SetOptShowBannerOnRun(true)
 
 	// Configuration flags
 	ap.NewBoolArgument(&debug, "", "--debug", false, "Debug mode.")
@@ -72,7 +76,7 @@ func parseArgs() {
 
 	ap.Parse()
 
-	if useLdaps && !group_ldapSettings.LongNameToArgument["--port"].IsPresent() {
+	if useLdaps && !group_ldapSettings.LongNameToArgument["--ldap-port"].IsPresent() {
 		ldapPort = 636
 	}
 
